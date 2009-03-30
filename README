@@ -2,11 +2,12 @@
 Chiron
 ======
 
-Chiron is a system of interoperable JavaScript modules.  Chiron modules
-conform to the "securable, interoperable JavaScript module specification" [1].
-Chiron also provides a compliant module loader for web browsers.  This
-project strives to provide a coherent set of general purpose modules for
-both client and server, and secure and non-secured environments.
+Chiron is a system of interoperable JavaScript modules.  Chiron modules 
+conform to the "securable, interoperable JavaScript module
+specification" [1].  Chiron also provides a compliant module loader for web 
+browsers.  This project strives to provide a coherent set of general 
+purpose modules for both client and server, and secure and non-secured 
+environments.
 
 These modules presently include:
 
@@ -18,13 +19,41 @@ These modules presently include:
  * hashing
  * caching
 
-Versions 0.2 and beyond are being developed here on Github.  The 0.1 development
-train is in Subversion at Google Code [2].  
+Versions 0.2 and beyond are being developed here on Github.  The 0.1 
+development train is in Subversion at Google Code [2].  
 
- _[1]: Securable, Interoperable Modules
-    https://wiki.mozilla.org/ServerJS/Modules/SecurableModules
- _[2]: Chiron at Google Code
-    http://code.google.com/p/chironjs/
+
+Usage
+=====
+
+Chiron modules can be used both on the client and server side.  Chiron 
+ships with a browser-based XHR module loader.  ``modules.js`` is a script, 
+suitable for inclusion on with a ``<script>`` tag in a web page.  The 
+script will instantiate a module system in the page.  In the script tag, 
+put the identifier of your main module in the query string::
+
+    <script src="path/to/modules.js?main"></script>
+
+If your module library is in an alternate location, you can supply a 
+library path on the query string as well::
+
+    <script src="/modules.js?path=/js/&main"></script>
+
+Tools for bundling and minimizing modules for production are presently 
+being recreated for this version of Chiron.
+
+``modules.js`` leaves no trace of itself in the DOM or in the global scope 
+(it does not add any properties to the ``window`` object, and removes its 
+own ``<script>`` tag from the DOM.  Thus, Chiron is very kind to its 
+neighbors, and most modules are designed deffensively and non-aggressively.
+
+
+Installation
+============
+
+Chiron does not presently support installation, but there are plans to 
+eventually integrate with Narwhal [3] and whatever package management 
+system the Server-side JavaScript [4] "working group" ratifies. 
 
 
 Legal
@@ -32,9 +61,9 @@ Legal
 
 Chiron is a component of the Tale web-game project.
 
-All contributions are provided under permissive, non-viral
-licenses including MIT, BSD, Creative Commons Attribution 2.5,
-Public Domain, or unrestricted.
+All contributions are provided under permissive, non-viral licenses 
+including MIT, BSD, Creative Commons Attribution 2.5, Public Domain, or 
+unrestricted.
 
 
 License
@@ -109,4 +138,17 @@ Ash Searle
 
   `printf.js`:
   "Unrestricted" License
+
+
+References
+==========
+
+ _[1]: Securable, Interoperable Modules
+    https://wiki.mozilla.org/ServerJS/Modules/SecurableModules
+ _[2]: Chiron at Google Code
+    http://code.google.com/p/chironjs/
+ -[3]: Narwhal, a server side standard library for JavaScript
+    http://github.com/tlrobinson/narwhal/tree/master
+ -[4]: Server Side JavaScript Working Group
+    https://wiki.mozilla.org/ServerJS
 
