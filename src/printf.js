@@ -54,7 +54,7 @@
 /*** printf
 */
 exports.printf = function () {
-    environment.print(sprintf.apply(null, arguments));
+    sys.print(sprintf.apply(null, arguments));
 };
 
 /*** sprintf

@@ -41,18 +41,18 @@
         if (!Object.prototype.hasOwnProperty.call(modules, id)) {
             var exports = {};
             modules[id] = exports;
-            factories[id](require, exports, environment);
+            factories[id](require, exports, sys);
         }
         return modules[id];
     };
 
-    /* a permissive environment for kernel modules */
-    var environment = {
+    /* a permissive sys for kernel modules */
+    var sys = {
         window: window,
         evalGlobal: evalGlobal
     };
 
-    factories.main = function (require, exports, environment) {
+    factories.main = function (require, exports, sys) {
 
         var FILE = 'modules.js'; /* used to find the corresponding <script> */
 
@@ -60,10 +60,10 @@
         var browser = require('browser');
         var console = require('console');
 
-        var window = environment.window;
+        var window = sys.window;
         var document = window.document;
-        environment.print = console.print;
-        environment.messages = console.messages;
+        sys.print = console.print;
+        sys.messages = console.messages;
 
         /* grab the URL of modules.js relative to the containing page,
            and remove the <script> tag that invoked this module loader
@@ -88,7 +88,7 @@
         browser.observeDomReady(function () {
 
             var sandbox = require('sandbox');
-            sandbox.execUrl(PATH, PATH, environment);
+            sandbox.execUrl(PATH, PATH, sys);
 
             /* note for CSS that JavaScript is enabled, and ready */
             document.body.className = document.body.className + ' javascript';
@@ -97,11 +97,11 @@
 
     };
 
-    factories.sandbox = function (require, exports, environment) {
+    factories.sandbox = function (require, exports, sys) {
 
         var http = require('http');
         var urls = require('urls');
-        var evalGlobal = environment.evalGlobal;
+        var evalGlobal = sys.evalGlobal;
 
         exports.Loader = function (options) {
             options = options || {};
@@ -132,7 +132,7 @@
                 if (iojs)
                     text = "include = undefined; " + text;
                 text = (
-                    "(function (require, exports, environment, include, imports) {" +
+                    "(function (require, exports, sys, include, imports) {" +
                         text +
                     "})"
                 );
@@ -168,7 +168,7 @@
         exports.Sandbox = function (options) {
             options = options || {};
             var loader = options.loader || exports.Loader(options);
-            var sandboxEnvironment = options.environment || environment;
+            var sandboxEnvironment = options.sys || sys;
             var modules = options.modules || {};
             var debug = options.debug === true;
             var main;
@@ -180,14 +180,14 @@
                 if (baseId === undefined && main === undefined)
                     main = id;
                 else if (baseId === undefined && main !== undefined) {
-                    environment.print(
+                    sys.print(
                         'multiple main modules: ' +
                         '"' + main + '" and ' +
                         '"' + id + '" in one box',
                         'warn'
                     );
                 } else if (main === undefined) {
-                    environment.print(
+                    sys.print(
                         'module box instantiated without a main module.  ' +
                         'instantiated with ' + 
                         '"' + id + '" from ' + 
@@ -207,7 +207,7 @@
                         debugDepth++;
                         var debugAcc = "";
                         for (var i = 0; i < debugDepth; i++) debugAcc += "+";
-                        environment.print(debugAcc + " " + id, 'module');
+                        sys.print(debugAcc + " " + id, 'module');
                     }
 
                     var exports = modules[id] = new Module();
@@ -232,7 +232,7 @@
                     if (debug) {
                         var debugAcc = "";
                         for (var i = 0; i < debugDepth; i++) debugAcc += "-";
-                        environment.print(debugAcc + " " + id, 'module');
+                        sys.print(debugAcc + " " + id, 'module');
                         debugDepth--;
                     }
 
@@ -303,7 +303,7 @@
                     var curried = function () {
                         return callback.apply(
                             this,
-                            [baseId].concat(Array.prototype.slice.call(arguments, 0))
+                            [baseId].concat(Array.prototype.slice.call(arguments))
                         );
                     };
                     curried.curryId = callback;
@@ -341,18 +341,18 @@
             if (url.query != "") {
                 mainIds = url.query.split("&");
                 if (/^path=(.*)/.test(mainIds[0])) {
-                    PATH = urls.resolve(/^path=(.*)/.exec(mainIds[0])[1], environment.window.location.href);
+                    PATH = urls.resolve(/^path=(.*)/.exec(mainIds[0])[1], sys.window.location.href);
                     mainIds.shift();
                 }
             }
 
             /* load main modules */
-            sandboxEnvironment.moduleFactories = environment.moduleFactories || {};
+            sandboxEnvironment.moduleFactories = sys.moduleFactories || {};
             var sandbox = exports.Sandbox({
                 path: PATH,
                 importsLocal: true,
                 exportsLocal: true,
-                environment: sandboxEnvironment//,
+                sys: sandboxEnvironment//,
                 //factories: sandboxEnvironment.moduleFactories
             });
             for (var i = 0; i < mainIds.length; i++) {
@@ -371,10 +371,10 @@
 
     };
 
-    factories.environment = function (require, exports, environment) {
+    factories.environment = function (require, exports, sys) {
 
-        if (environment.window) {
-            var window = environment.window;
+        if (sys.window) {
+            var window = sys.window;
             var navigator = window.navigator;
 
             exports.isIE = navigator.appVersion.indexOf("MSIE") >= 0;
@@ -384,10 +384,10 @@
 
     };
 
-    factories.console = function (require, exports, environment) {
+    factories.console = function (require, exports, sys) {
 
-        var window = environment.window;
-        var console = environment.console || window.console;
+        var window = sys.window;
+        var console = sys.console || window.console;
 
         /*** exports
         */
@@ -465,10 +465,10 @@
 
     };
 
-    factories.browser = function (require, exports, environment) {
+    factories.browser = function (require, exports, sys) {
 
-        var env = require('environment');
-        var window = environment.window;
+        var environment = require('environment');
+        var window = sys.window;
         var document = window.document;
         var top = window.top;
 
@@ -519,7 +519,7 @@
                 Opera uses DOMContentLoaded but has special code for
                 pending style sheets.
             */
-            if (env.isOpera)
+            if (environment.isOpera)
                 document.addEventListener("DOMContentLoaded", function () {
                     if (isDomReady) return;
                     for (var i = 0; i < document.styleSheets.length; i++)
@@ -540,7 +540,7 @@
                 If IE is used and is not in a frame,
                 continually check to see whether the document is ready.
             */
-            if (env.isIE && window == top) (function () {
+            if (environment.isIE && window == top) (function () {
                 if (isDomReady) return;
                 try {
                     /*
@@ -562,7 +562,7 @@
                 ready();
             })();
 
-            if (env.isSafari) {
+            if (environment.isSafari) {
                 (function () {
                     if (isDomReady) return;
                     if (
@@ -613,7 +613,7 @@
 
     };
 
-    factories.urls = function (require, exports, environment) {
+    factories.urls = function (require, exports, sys) {
         
         /**** keys
             members of a parsed URI object.
@@ -939,11 +939,11 @@
 
     };
 
-    factories.http = function (require, exports, environment) {
+    factories.http = function (require, exports, sys) {
 
         var urls = require('urls');
-        var env = require('environment');
-        var window = environment.window;
+        var environment = require('environment');
+        var window = sys.window;
 
         /**** requestContent
             returns the text at a given URL using an HTTP
@@ -975,7 +975,7 @@
             var request = exports.Request();
             var response = request.getResponse();
 
-            url = urls.resolve(url, environment.window.location.href);
+            url = urls.resolve(url, sys.window.location.href);
 
             if (observer)
                 request.observe("ok", observer);
@@ -1228,7 +1228,7 @@
                         }
 
                     } catch (exception) {
-                        environment.print(exception.message || exception, 'error');
+                        sys.print(exception.message || exception, 'error');
                     }
                     free();
                 }
@@ -1321,7 +1321,7 @@
                     status == 1223 ||
                     /* Safari 2 asynchronous file:// and
                       all Safari for no file content */
-                    (env.isSafari && status == undefined && (
+                    (environment.isSafari && status == undefined && (
                         /^file:\/\//.test(url) ||
                         realRequest.responseText == ""
                     ))
@@ -1428,7 +1428,7 @@
                 function () {return new window.XMLHttpRequest()},
                 function () {return new window.ActiveXObject("Msxml2.XMLHTTP.6.0")},
                 function () {return new window.ActiveXObject("Msxml2.XMLHTTP.3.0")},
-                function () {throw new Error("No HTTP Request object available for your environment.")}
+                function () {throw new Error("No HTTP Request object available for your system.")}
             ];
 
             var trial, result, exception;

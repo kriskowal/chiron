@@ -295,7 +295,7 @@ for (var i = 0; i < moduleUrls.length; i++) {
 
 */
 
-if (environment.window) {
+if (sys.window) {
 
     /*** Schedule
         accepts a `setTimeout` / `clearTimeout` handle number.
@@ -311,7 +311,7 @@ if (environment.window) {
         */
         self.dismiss = function () {
             if (!exports.no(handle))
-                environment.window.clearTimeout(handle);
+                sys.window.clearTimeout(handle);
         };
 
     });
@@ -330,11 +330,11 @@ if (environment.window) {
             continuation = args[1];
         }
         if (timeout == Infinity) return exports.Schedule();
-        return exports.Schedule(environment.window.setTimeout(function () {
+        return exports.Schedule(sys.window.setTimeout(function () {
             try {
                 continuation();
             } catch (exception) {
-                environment.print(exception, 'error');
+                sys.print(exception, 'error');
             }
         }, timeout));
     };

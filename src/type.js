@@ -14,7 +14,7 @@
 var boot = require('./boot');
 
 /* use curryId only if the module loader provides it */
-var curryId = require.xChironCurryId;
+var curryId = require.xChironCurryId || require.xNarwhalCurryId;
 if (!curryId) curryId = function (callback) {
     return function () {
         return callback.apply(
@@ -93,8 +93,13 @@ exports.type = curryId(function (moduleId) {
         bases = [];
         construct = function () {};
     } else if (arguments.length == 2) {
-        bases = [];
-        construct = arguments[1];
+        if (arguments[1] instanceof Function ) {
+            bases = [];
+            construct = arguments[1];
+        } else {
+            bases = arguments[1];
+            construct = function () {};
+        }
     } else if (arguments.length == 3) {
         bases = arguments[1];
         construct = arguments[2];
@@ -165,6 +170,8 @@ exports.type = curryId(function (moduleId) {
 
         instance.init.apply(instance, arguments);
 
+        boot.freeze(instance);
+
         return instance;
     };
 
@@ -222,7 +229,7 @@ exports.type = curryId(function (moduleId) {
         if (boot.no(name)) {
             if (!annonymousTypeCounters[moduleId])
                 annonymousTypeCounters[moduleId] = 0;
-            name = '<anonymous#' + (annonymousTypeCounters[moduleId]++) + '>';
+            name = '#' + (annonymousTypeCounters[moduleId]++) ;
         }
 
         /* cheap cache */
@@ -315,12 +322,12 @@ exports.type = curryId(function (moduleId) {
     /**** string
         alias of `repr` by default.
     */
-    self.string = boot.alias('repr');
+    self.string = alias('repr');
 
     /**** toString
         alias of `repr` by default.
     */
-    self.toString = boot.alias('repr');
+    self.toString = alias('repr');
 
     /**** nextHash
         returns a unique hash for an instance.
@@ -1059,7 +1066,7 @@ exports.repr = function (value, depth, memo) {
                 return '<function>';
             return '<built-in-function>';
         }
-        if (environment.window && window.Node && exports.isInstance(value, environment.window.Node))
+        if (sys.window && window.Node && exports.isInstance(value, sys.window.Node))
             return exports.nodeRepr(value);
         if (exports.isInstance(value, Array))
             return exports.arrayRepr(value, depth, memo);

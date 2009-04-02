@@ -368,9 +368,9 @@ exports.iter = type.operator(0, 'iter', function (values) {
     if (type.isInstance(values, String)) return exports.stringIter(values);
     if (type.isInstance(values, Array)) return exports.arrayIter(values);
     if (
-        environment.window &&
-        environment.window.Node ?
-        type.isInstance(values, environment.window.Node) :
+        sys.window &&
+        sys.window.Node ?
+        type.isInstance(values, sys.window.Node) :
         !boot.no(values.firstChild)
     )
         return exports.elementIter(values);

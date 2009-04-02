@@ -21,12 +21,12 @@
 "use iojs";
 
 /*** print
-    prints a message and label to the environment's console,
+    prints a message and label to the system's console,
     if one is available.
 */
 exports.print = function () {
-    if (environment.print) {
-        return environment.print.apply(this, arguments);
+    if (sys.print) {
+        return sys.print.apply(this, arguments);
     }
 };
 
@@ -68,14 +68,16 @@ exports.aliaser = function (self) {
 /*** freeze
     makes an object's members immutable, if that is
     possible with the running platform.  Silently
-    does nothing for insecurable environments.
+    does nothing for insecurable systems.
 */
 exports.freeze = function (object) {
     if (Object.freeze) {
-        Object.freeze(object);
-    } else if (typeof seal !== 'undefined') {
+        object = Object.freeze(object);
+    }
+    if (typeof seal !== 'undefined') {
         seal(object);
     }
+    return object;
 };
 
 /*** ed
@@ -499,9 +501,10 @@ exports.stringMul = function (str, num) {
     StopIteration from Error and thus pass the Errors through
     the iteration catch block.
 */
-exports.StopIteration = function () {
+exports.StopIteration = function (message) {
     if (this.constructor != exports.StopIteration)
-        return new exports.StopIteration();
+        return new exports.StopIteration(message);
+    this.message = message;
 };
 
 /*** stopIteration
@@ -512,9 +515,10 @@ exports.stopIteration = exports.StopIteration('Stop Iteration');
 
 /*** SkipIteration
 */
-exports.SkipIteration = function () {
+exports.SkipIteration = function (message) {
     if (this.constructor != exports.SkipIteration)
-        return new exports.SkipIteration();
+        return new exports.SkipIteration(message);
+    this.message = message;
 };
 
 /*** skipIteration

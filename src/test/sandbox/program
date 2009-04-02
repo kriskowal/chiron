@@ -1,0 +1,9 @@
+#!/usr/bin/env narwhal
+
+var base = require('chiron/base');
+var sandbox = require('chiron/sandbox');
+var Loader = base.type([sandbox.SecureLoaderMixin, sandbox.FileLoader]);
+var loader = Loader({paths: require.loader.getPaths()});
+sandbox.sandbox('chiron/test/sandbox/secured', base.freeze({print: sys.print}), {loader: loader});
+a = 10;
+
