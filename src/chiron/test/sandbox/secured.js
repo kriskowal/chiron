@@ -30,6 +30,20 @@ try {
 }
 
 try {
+    require.loader = 10;
+    sys.print('FAIL cannot write to require');
+} catch (exception) {
+    sys.print('PASS cannot write to require');
+}
+
+try {
+    require.loader.load = 10;
+    sys.print('FAIL cannot write to loader');
+} catch (exception) {
+    sys.print('PASS cannot write to loader');
+}
+
+try {
     var base = require('chiron/base');
     sys.print('PASS can require modules');
 } catch (exception) {

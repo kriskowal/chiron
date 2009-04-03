@@ -361,7 +361,7 @@ exports.Sandbox = base.type(function (self, supr) {
         require.id = baseId;
         require.loader = loader;
         require.main = main;
-        return require;
+        return base.freeze(require);
     };
 
 });
@@ -390,6 +390,7 @@ if (sys.platform == 'rhino') {
     };
 
 } else {
+
     base.print("Secure module loading is not available for your platform.", "warn");
 
     if (sys.evalGlobal) {

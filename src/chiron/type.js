@@ -131,7 +131,7 @@ exports.type = curryId(function (moduleId) {
         var instance = function () {
             if (boot.no(instance.invoke))
                 throw new Error(self.repr() + " cannot be called as a function.");
-            return instance.invoke.apply(instance, arguments);
+            return instance.invoke.apply(boot.freeze({}), arguments);
         };
 
         instance.getType = function () {
@@ -141,7 +141,7 @@ exports.type = curryId(function (moduleId) {
         /* for convenience */
         var alias = boot.aliaser(instance);
         var ed = boot.eder(instance);
-        var layer;
+        var layer = boot.freeze({});
 
         /* establish a set of instances for each type in the mro */
         for (var i = 0; i < reversedMro.length; i++) {
@@ -150,12 +150,12 @@ exports.type = curryId(function (moduleId) {
             baseType.getConstruct().call(
                 instance /* this */,
                 instance /* self */,
-                layer /* super */,
+                layer /* supr */,
                 alias, ed
             );
 
             layer = function () {
-                return layer.invoke.apply(instance, arguments);
+                return layer.invoke.apply(boot.freeze({}), arguments);
             };
 
             /* binding each function to the instance caused
@@ -166,13 +166,13 @@ exports.type = curryId(function (moduleId) {
                 layer[key] = instance[key];
             }
 
+            layer = boot.freeze(layer);
+
         }
 
-        instance.init.apply(instance, arguments);
+        instance.init.apply(boot.freeze({}), arguments);
 
-        boot.freeze(instance);
-
-        return instance;
+        return boot.freeze(instance);
     };
 
     var alias = boot.aliaser(self);
