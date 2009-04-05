@@ -1,0 +1,5 @@
+{
+    author: 'Kris Kowal',
+    dependencies: [],
+    js: "src"
+}
