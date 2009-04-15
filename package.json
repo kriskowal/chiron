@@ -1,5 +1,5 @@
 {
-    author: 'Kris Kowal',
-    dependencies: [],
-    js: "src"
+    "author": "Kris Kowal",
+    "dependencies": [],
+    "js": "src"
 }
