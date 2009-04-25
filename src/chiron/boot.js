@@ -25,8 +25,8 @@
     if one is available.
 */
 exports.print = function () {
-    if (sys.print) {
-        return sys.print.apply(this, arguments);
+    if (system.print) {
+        return system.print.apply(this, arguments);
     }
 };
 

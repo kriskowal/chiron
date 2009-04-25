@@ -41,18 +41,18 @@
         if (!Object.prototype.hasOwnProperty.call(modules, id)) {
             var exports = {};
             modules[id] = exports;
-            factories[id](require, exports, sys);
+            factories[id](require, exports, system);
         }
         return modules[id];
     };
 
-    /* a permissive sys for kernel modules */
-    var sys = {
+    /* a permissive system for kernel modules */
+    var system = {
         window: window,
         evalGlobal: evalGlobal
     };
 
-    factories.main = function (require, exports, sys) {
+    factories.main = function (require, exports, system) {
 
         var FILE = 'modules.js'; /* used to find the corresponding <script> */
 
@@ -60,10 +60,10 @@
         var browser = require('browser');
         var console = require('console');
 
-        var window = sys.window;
+        var window = system.window;
         var document = window.document;
-        sys.print = console.print;
-        sys.messages = console.messages;
+        system.print = console.print;
+        system.messages = console.messages;
 
         /* grab the URL of modules.js relative to the containing page,
            and remove the <script> tag that invoked this module loader
@@ -88,7 +88,7 @@
         browser.observeDomReady(function () {
 
             var sandbox = require('sandbox');
-            sandbox.execUrl(PATH, PATH, sys);
+            sandbox.execUrl(PATH, PATH, system);
 
             /* note for CSS that JavaScript is enabled, and ready */
             document.body.className = document.body.className + ' javascript';
@@ -97,11 +97,11 @@
 
     };
 
-    factories.sandbox = function (require, exports, sys) {
+    factories.sandbox = function (require, exports, system) {
 
         var http = require('http');
         var urls = require('urls');
-        var evalGlobal = sys.evalGlobal;
+        var evalGlobal = system.evalGlobal;
 
         exports.Loader = function (options) {
             options = options || {};
@@ -132,7 +132,7 @@
                 if (iojs)
                     text = "include = undefined; " + text;
                 text = (
-                    "(function (require, exports, sys, include, imports) {" +
+                    "(function (require, exports, system, include, imports) {" +
                         text +
                     "})"
                 );
@@ -168,7 +168,7 @@
         exports.Sandbox = function (options) {
             options = options || {};
             var loader = options.loader || exports.Loader(options);
-            var sandboxEnvironment = options.sys || sys;
+            var sandboxEnvironment = options.system || system;
             var modules = options.modules || {};
             var debug = options.debug === true;
             var main;
@@ -180,14 +180,14 @@
                 if (baseId === undefined && main === undefined)
                     main = id;
                 else if (baseId === undefined && main !== undefined) {
-                    sys.print(
+                    system.print(
                         'multiple main modules: ' +
                         '"' + main + '" and ' +
                         '"' + id + '" in one box',
                         'warn'
                     );
                 } else if (main === undefined) {
-                    sys.print(
+                    system.print(
                         'module box instantiated without a main module.  ' +
                         'instantiated with ' + 
                         '"' + id + '" from ' + 
@@ -207,7 +207,7 @@
                         debugDepth++;
                         var debugAcc = "";
                         for (var i = 0; i < debugDepth; i++) debugAcc += "+";
-                        sys.print(debugAcc + " " + id, 'module');
+                        system.print(debugAcc + " " + id, 'module');
                     }
 
                     var exports = modules[id] = new Module();
@@ -232,7 +232,7 @@
                     if (debug) {
                         var debugAcc = "";
                         for (var i = 0; i < debugDepth; i++) debugAcc += "-";
-                        sys.print(debugAcc + " " + id, 'module');
+                        system.print(debugAcc + " " + id, 'module');
                         debugDepth--;
                     }
 
@@ -341,18 +341,18 @@
             if (url.query != "") {
                 mainIds = url.query.split("&");
                 if (/^path=(.*)/.test(mainIds[0])) {
-                    PATH = urls.resolve(/^path=(.*)/.exec(mainIds[0])[1], sys.window.location.href);
+                    PATH = urls.resolve(/^path=(.*)/.exec(mainIds[0])[1], system.window.location.href);
                     mainIds.shift();
                 }
             }
 
             /* load main modules */
-            sandboxEnvironment.moduleFactories = sys.moduleFactories || {};
+            sandboxEnvironment.moduleFactories = system.moduleFactories || {};
             var sandbox = exports.Sandbox({
                 path: PATH,
                 importsLocal: true,
                 exportsLocal: true,
-                sys: sandboxEnvironment//,
+                system: sandboxEnvironment//,
                 //factories: sandboxEnvironment.moduleFactories
             });
             for (var i = 0; i < mainIds.length; i++) {
@@ -371,10 +371,10 @@
 
     };
 
-    factories.environment = function (require, exports, sys) {
+    factories.environment = function (require, exports, system) {
 
-        if (sys.window) {
-            var window = sys.window;
+        if (system.window) {
+            var window = system.window;
             var navigator = window.navigator;
 
             exports.isIE = navigator.appVersion.indexOf("MSIE") >= 0;
@@ -384,10 +384,10 @@
 
     };
 
-    factories.console = function (require, exports, sys) {
+    factories.console = function (require, exports, system) {
 
-        var window = sys.window;
-        var console = sys.console || window.console;
+        var window = system.window;
+        var console = system.console || window.console;
 
         /*** exports
         */
@@ -465,10 +465,10 @@
 
     };
 
-    factories.browser = function (require, exports, sys) {
+    factories.browser = function (require, exports, system) {
 
         var environment = require('environment');
-        var window = sys.window;
+        var window = system.window;
         var document = window.document;
         var top = window.top;
 
@@ -613,7 +613,7 @@
 
     };
 
-    factories.urls = function (require, exports, sys) {
+    factories.urls = function (require, exports, system) {
         
         /**** keys
             members of a parsed URI object.
@@ -939,11 +939,11 @@
 
     };
 
-    factories.http = function (require, exports, sys) {
+    factories.http = function (require, exports, system) {
 
         var urls = require('urls');
         var environment = require('environment');
-        var window = sys.window;
+        var window = system.window;
 
         /**** requestContent
             returns the text at a given URL using an HTTP
@@ -975,7 +975,7 @@
             var request = exports.Request();
             var response = request.getResponse();
 
-            url = urls.resolve(url, sys.window.location.href);
+            url = urls.resolve(url, system.window.location.href);
 
             if (observer)
                 request.observe("ok", observer);
@@ -1228,7 +1228,7 @@
                         }
 
                     } catch (exception) {
-                        sys.print(exception.message || exception, 'error');
+                        system.print(exception.message || exception, 'error');
                     }
                     free();
                 }

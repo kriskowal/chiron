@@ -1066,7 +1066,7 @@ exports.repr = function (value, depth, memo) {
                 return '<function>';
             return '<built-in-function>';
         }
-        if (sys.window && window.Node && exports.isInstance(value, sys.window.Node))
+        if (system.window && window.Node && exports.isInstance(value, system.window.Node))
             return exports.nodeRepr(value);
         if (exports.isInstance(value, Array))
             return exports.arrayRepr(value, depth, memo);

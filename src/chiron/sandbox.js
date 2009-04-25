@@ -38,7 +38,7 @@ exports.AbstractLoader = base.type([optioned.Optioned], function (self, supr) {
         if (require.loader)
             return require.loader.evaluate(text, id);
         else
-            return new Function("require", "exports", "sys", text);
+            return new Function("require", "exports", "system", text);
     };
 
     /**** load
@@ -61,6 +61,13 @@ exports.AbstractLoader = base.type([optioned.Optioned], function (self, supr) {
         factories.set(id, self.evaluate(self.fetch(id), id));
     };
 
+    /**** isLoaded
+        returns whether a module has been loaded
+    */
+    self.isLoaded = function (id) {
+        return factories.has(id);
+    };
+
     /**** clear
         purges the factory memo.
     */
@@ -73,7 +80,7 @@ exports.AbstractLoader = base.type([optioned.Optioned], function (self, supr) {
 /*** FileLoader
 */
 exports.FileLoader = base.type([exports.AbstractLoader], function (self, supr) {
-    var File = require('file').File;
+    var fs = require('file');
     var stamps = base.Dict();
     var path = [];
     var extensions = ["", ".js"];
@@ -104,31 +111,22 @@ exports.FileLoader = base.type([exports.AbstractLoader], function (self, supr) {
         if (typeof id != "string")
             throw new Error("module id '" + id + "' is not a String");
         if (id.charAt(0) == ".") {
-            id = File.dirname(baseId) + "/" + id;
+            id = fs.dirname(baseId) + "/" + id;
         }
-        return self.normalize(id);
-    };
-
-    /**** normalize
-    */
-    self.normalize = function (id) {
-        // todo: deprecate {platform} in favor of using sys.platform expressly
-        id = id.replace("{platform}", "platforms/" + sys.platform);
-        id = File.canonicalize(id);
-        return id;
+        return fs.normal(id);
     };
 
     /**** fetch
     */
     self.fetch = function (id) {
-        return File.read(self.find(id));
+        return fs.read(self.find(id));
     };
 
     /**** load
     */
     self.load = function (id) {
         var fileName = self.find(id);
-        if (stamps.has(id) && stamps.get(id).getTime() < File.mtime(fileName).getTime())
+        if (stamps.has(id) && stamps.get(id).getTime() < fs.mtime(fileName).getTime())
             self.reload(id);
         return supr.load(id);
     };
@@ -138,7 +136,7 @@ exports.FileLoader = base.type([exports.AbstractLoader], function (self, supr) {
     self.reload = function (id) {
         if (debug && stamps.has(id))
             base.print('reloaded ' + id, 'module');
-        stamps.set(id, File.mtime(self.find(id)));
+        stamps.set(id, fs.mtime(self.find(id)));
         supr.reload(id);
     };
 
@@ -148,8 +146,8 @@ exports.FileLoader = base.type([exports.AbstractLoader], function (self, supr) {
         try {
             return base.eachIter(paths, function (path) {
                 return base.eachIter(extensions, function (extension) {
-                    var fileName = File.join(path, id + extension);
-                    if (File.exists(fileName))
+                    var fileName = fs.join(path, id + extension);
+                    if (fs.isFile(fileName))
                         return fileName;
                 });
             }).sum().to(require('./boost').dropWhile(base.no)).next();
@@ -272,6 +270,9 @@ exports.SecureLoaderMixin = base.type(function (self, supr) {
         return exports.evaluate(text, id);
     };
 
+
+    delete self.setPaths;
+
 });
 
 /*** Sandbox
@@ -291,7 +292,7 @@ exports.Sandbox = base.type(function (self, supr) {
         options = base.dict(options);
         loader = options.get('loader');
         modules = base.dict(options.get('modules', undefined));
-        sandboxEnvironment = base.freeze(base.object(options.get('sys', undefined)));
+        sandboxEnvironment = base.freeze(base.object(options.get('system', undefined)));
         debug = options.get('debug', false);
     };
 
@@ -307,24 +308,19 @@ exports.Sandbox = base.type(function (self, supr) {
 
             if (debug) {
                 debugDepth++;
-                sys.print(base.mul('+', debugDepth) + ' ' + id, 'module');
+                system.print(base.mul('+', debugDepth) + ' ' + id, 'module');
             }
 
-            try {
-                var exports = {};
-                modules.set(id, exports);
-                if (force)
-                    loader.reload(id);
-                var factory = loader.load(id);
-                var require = Require(id);
-                factory.call(base.freeze({}), require, exports, sandboxEnvironment);
-            } catch (exception) {
-                modules.del(id);
-                throw exception;
-            }
+            var exports = {};
+            modules.set(id, exports);
+            if (force)
+                loader.reload(id);
+            var factory = loader.load(id);
+            var require = Require(id);
+            factory.call(base.freeze({}), require, exports, sandboxEnvironment);
 
             if (debug) {
-                sys.print(base.mul('-', debugDepth) + ' ' + id, 'module');
+                system.print(base.mul('-', debugDepth) + ' ' + id, 'module');
                 debugDepth--;
             }
 
@@ -343,6 +339,12 @@ exports.Sandbox = base.type(function (self, supr) {
     */
     self.clear = function () {
         modules.clear();
+    };
+
+    /**** isLoaded
+    */
+    self.isLoaded = function (id) {
+        return modules.has(id);
     };
 
     var Require = function (baseId) {
@@ -369,11 +371,57 @@ exports.Sandbox = base.type(function (self, supr) {
 /*** evaluate
 */
 
-if (sys.platform == 'rhino') {
+if (system.platform == 'rhino') {
+
+    var blacklist = [
+        'Packages',
+        'java',
+        'javax',
+        'org',
+        'net',
+        'com',
+        'edu',
+        'JavaAdapter',
+        'JavaImporter',
+        'getClass'
+    ];
+
+    var whitelist = [
+        'Array',
+        'Boolean',
+        'Date',
+        'Error',
+        'EvalError',
+        'Function',
+        'Math',
+        'Number',
+        'Object',
+        'RangeError',
+        'ReferenceError',
+        'InternalError',
+        'RegExp',
+        'String',
+        'SyntaxError',
+        'TypeError',
+        'URIError',
+        'Infinity',
+        'NaN',
+        'undefined',
+        'decodeURI',
+        'decodeURIComponent',
+        'encodeURI',
+        'encodeURIComponent',
+        'eval',
+        'isFinite',
+        'isNaN',
+        'parseFloat',
+        'parseInt'
+    ];
 
     var context = new Packages.org.mozilla.javascript.Context();
-    var global = context.initStandardObjects(null, true); // sealed!
-    delete global.Packages; // strange and wonderful that this is presently permitted
+    var global = context.initStandardObjects(null, true);
+    for (var i = 0; i < blacklist.length; i++)
+        delete global[blacklist[i]];
     seal(global);
 
     exports.evaluate = function (text, id) {
@@ -382,7 +430,7 @@ if (sys.platform == 'rhino') {
         // return a module factory function instead though.
         return context.compileFunction(
             global,
-            "function(require,exports,sys){"+text+"}",
+            "function(require,exports,system){"+text+"}",
             id,
             1,
             null
@@ -393,8 +441,8 @@ if (sys.platform == 'rhino') {
 
     base.print("Secure module loading is not available for your platform.", "warn");
 
-    if (sys.evalGlobal) {
-        exports.evaluate = sys.evalGlobal;
+    if (system.evalGlobal) {
+        exports.evaluate = system.evalGlobal;
     } else {
         exports.evaluate = function () {
             return eval(arguments[0]);
@@ -420,8 +468,8 @@ if (sys.platform == 'rhino') {
       
 
 */
-exports.sandbox = function (main, sys, options) {
-    sys = base.freeze(base.object(sys));
+exports.sandbox = function (main, system, options) {
+    system = base.freeze(base.object(system));
     options = base.dict(options);
     var prefix = options.get('prefix', undefined);
     var loader = options.get('loader', require.loader);
@@ -435,7 +483,7 @@ exports.sandbox = function (main, sys, options) {
         loader = exports.PrefixLoader(prefix, loader);
     var sandbox = exports.Sandbox({
         loader: loader,
-        sys: sys,
+        system: system,
         debug: debug
     });
     return sandbox(main);
