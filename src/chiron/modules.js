@@ -132,7 +132,7 @@
                 if (iojs)
                     text = "include = undefined; " + text;
                 text = (
-                    "(function (require, exports, system, include, imports) {" +
+                    "(function (require, exports, module, system, print, include, imports) {" +
                         text +
                     "})"
                 );
@@ -168,7 +168,7 @@
         exports.Sandbox = function (options) {
             options = options || {};
             var loader = options.loader || exports.Loader(options);
-            var sandboxEnvironment = options.system || system;
+            var sandboxSystem = options.system || system;
             var modules = options.modules || {};
             var debug = options.debug === true;
             var main;
@@ -176,26 +176,6 @@
             var debugDepth = 0;
 
             var sandbox = function (id, baseId) {
-
-                if (baseId === undefined && main === undefined)
-                    main = id;
-                else if (baseId === undefined && main !== undefined) {
-                    system.print(
-                        'multiple main modules: ' +
-                        '"' + main + '" and ' +
-                        '"' + id + '" in one box',
-                        'warn'
-                    );
-                } else if (main === undefined) {
-                    system.print(
-                        'module box instantiated without a main module.  ' +
-                        'instantiated with ' + 
-                        '"' + id + '" from ' + 
-                        '"' + baseId + '"',
-                        'error'
-                    );
-                    main = baseId;
-                }
 
                 id = loader.resolve(id, baseId);
 
@@ -213,6 +193,7 @@
                     var exports = modules[id] = new Module();
                     var factory = loader.load(id);
                     var require = Require(id);
+                    var module = {id: id};
                     var imports = {};
                     var include = Include(require, imports);
                     try {
@@ -220,7 +201,9 @@
                             exports,
                             require,
                             exports,
-                            sandboxEnvironment,
+                            module,
+                            sandboxSystem,
+                            sandboxSystem.print,
                             include,
                             imports
                         );
@@ -297,7 +280,6 @@
                 /* extensions */
                 require.xChironModule = Module;
                 require.xChironId = baseId;
-                require.id = baseId;
                 require.main = main;
                 require.xChironCurryId = function (callback) {
                     var curried = function () {
@@ -325,6 +307,11 @@
                 };
             };
 
+            sandbox.main = function (id, baseId) {
+                main = loader.resolve(id, baseId);
+                return sandbox(main);
+            };
+
             /* just for use as a base prototype */
             var Module = function () {};
 
@@ -333,7 +320,7 @@
 
         /* execUrl is a utility method of this ipmlementation, not necessary
          * for the interoperable modules specification. */
-        exports.execUrl = function (url, PATH, sandboxEnvironment) {
+        exports.execUrl = function (url, PATH, sandboxSystem) {
 
             /* populate a list of initial ids from the query string of the PATH */
             var mainIds = [];
@@ -347,25 +334,25 @@
             }
 
             /* load main modules */
-            sandboxEnvironment.moduleFactories = system.moduleFactories || {};
+            sandboxSystem.moduleFactories = system.moduleFactories || {};
             var sandbox = exports.Sandbox({
                 path: PATH,
                 importsLocal: true,
                 exportsLocal: true,
-                system: sandboxEnvironment//,
-                //factories: sandboxEnvironment.moduleFactories
+                system: sandboxSystem//,
+                //factories: sandboxSystem.moduleFactories
             });
             for (var i = 0; i < mainIds.length; i++) {
                 try {
-                    sandbox(mainIds[i]);
+                    sandbox.main(mainIds[i], system.window.location.href);
                 } catch (exception) {
-                    sandboxEnvironment.print('' + exception, 'error');
+                    sandboxSystem.print('' + exception, 'error');
                     throw exception;
                 }
             }
 
             /* notify the user that all main modules have finished loading */
-            sandboxEnvironment.print('ready', 'info');
+            sandboxSystem.print('ready', 'info');
 
         };
 
