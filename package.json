@@ -1,5 +1,7 @@
 {
     "author": "Kris Kowal",
-    "dependencies": [],
-    "lib": "src"
+    "contributors": [
+        "Steven Levithan"
+    ],
+    "dependencies": []
 }
