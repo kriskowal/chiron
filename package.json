@@ -1,5 +1,7 @@
 {
     "author": "Kris Kowal",
+    "description": "A system of interoperable JavaScript modules, including a Pythonic type system and types",
+    "keywords": ["type system", "types", "interoperable", "events", "caching", "cache"],
     "contributors": [
         "Steven Levithan"
     ],
