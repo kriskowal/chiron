@@ -8,9 +8,8 @@ Chiron is a system of CommonJS modules that introduce:
  * base types
  * general-purpose functions
  * events
- * encoding, decoding
- * hashing
- * caching
+ * optioned objects
+ * caches and memos
 
 Versions 0.2 and beyond are being developed here on Github.  The 0.1 
 development train is in Subversion at Google Code [2].  
