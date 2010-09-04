@@ -2,14 +2,7 @@
 Chiron
 ======
 
-Chiron is a system of interoperable JavaScript modules.  Chiron modules 
-conform to the "securable, interoperable JavaScript module
-specification" [1].  Chiron also provides a compliant module loader for web 
-browsers.  This project strives to provide a coherent set of general 
-purpose modules for both client and server, and secure and non-secured 
-environments.
-
-These modules presently include:
+Chiron is a system of CommonJS modules that introduce:
 
  * a type system
  * base types
@@ -21,6 +14,16 @@ These modules presently include:
 
 Versions 0.2 and beyond are being developed here on Github.  The 0.1 
 development train is in Subversion at Google Code [2].  
+
+Node
+----
+
+    $ npm install chiron
+
+Narwhal
+-------
+
+    $ tusk install chiron
 
 
 Usage
@@ -46,14 +49,6 @@ being recreated for this version of Chiron.
 (it does not add any properties to the ``window`` object, and removes its 
 own ``<script>`` tag from the DOM.  Thus, Chiron is very kind to its 
 neighbors, and most modules are designed deffensively and non-aggressively.
-
-
-Installation
-============
-
-Chiron does not presently support installation, but there are plans to 
-eventually integrate with Narwhal [3] and whatever package management 
-system the Server-side JavaScript [4] "working group" ratifies. 
 
 
 Legal
@@ -144,11 +139,11 @@ References
 ==========
 
  _[1]: Securable, Interoperable Modules
-    https://wiki.mozilla.org/ServerJS/Modules/SecurableModules
+    http://wiki.commonjs.org/wiki/Modules
  _[2]: Chiron at Google Code
     http://code.google.com/p/chironjs/
  -[3]: Narwhal, a server side standard library for JavaScript
     http://github.com/tlrobinson/narwhal/tree/master
- -[4]: Server Side JavaScript Working Group
-    https://wiki.mozilla.org/ServerJS
+ -[4]: CommonJS
+    http://wiki.commonjs.org/
 

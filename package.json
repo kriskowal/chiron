@@ -1,9 +1,11 @@
 {
-    "author": "Kris Kowal",
+    "name": "chiron",
+    "version": "1.0.0",
     "description": "A system of interoperable JavaScript modules, including a Pythonic type system and types",
+    "author": "Kris Kowal <kris@cixar.com> (http://askawizard.blogspot.com/)",
     "keywords": ["type system", "types", "interoperable", "events", "caching", "cache"],
     "contributors": [
         "Steven Levithan"
     ],
-    "dependencies": []
+    "main": "./lib/chiron.js"
 }
