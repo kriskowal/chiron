@@ -25,31 +25,6 @@ Narwhal
     $ tusk install chiron
 
 
-Usage
-=====
-
-Chiron modules can be used both on the client and server side.  Chiron 
-ships with a browser-based XHR module loader.  ``modules.js`` is a script, 
-suitable for inclusion on with a ``<script>`` tag in a web page.  The 
-script will instantiate a module system in the page.  In the script tag, 
-put the identifier of your main module in the query string::
-
-    <script src="path/to/modules.js?main"></script>
-
-If your module library is in an alternate location, you can supply a 
-library path on the query string as well::
-
-    <script src="/modules.js?path=/js/&main"></script>
-
-Tools for bundling and minimizing modules for production are presently 
-being recreated for this version of Chiron.
-
-``modules.js`` leaves no trace of itself in the DOM or in the global scope 
-(it does not add any properties to the ``window`` object, and removes its 
-own ``<script>`` tag from the DOM.  Thus, Chiron is very kind to its 
-neighbors, and most modules are designed deffensively and non-aggressively.
-
-
 Legal
 =======
 
@@ -110,28 +85,6 @@ Steve Levithan <http://stevenlevithan.com/>
   `regexp.js`, `format.js`, `modules.js`, `base.js`:
   regular expressions,
   MIT License
-
-
-Community Contributions
------------------------
-
-Google Inc.
-
-  `base.js`
-  <http://code.google.com/p/doctype/>,
-  good bits from the Doctype project,
-  New BSD License
-
-Mark James <http://www.famfamfam.com/>
-
-  `icons/`:
-  Silk icon set,
-  Creative Commons Attribution 2.5 License
-
-Ash Searle
-
-  `printf.js`:
-  "Unrestricted" License
 
 
 References
